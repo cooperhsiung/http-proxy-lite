@@ -1,0 +1,27 @@
+{
+  "name": "http-proxy-lite",
+  "version": "1.0.0",
+  "description": "slight http proxy",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cooperhsiung/http-proxy-lite.git"
+  },
+  "keywords": [
+    "http",
+    "proxy",
+    "http-proxy"
+  ],
+  "author": "Cooper Hsiung",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cooperhsiung/http-proxy-lite/issues"
+  },
+  "homepage": "https://github.com/cooperhsiung/http-proxy-lite#readme",
+  "dependencies": {
+    "@types/node": "^12.6.8"
+  }
+}
