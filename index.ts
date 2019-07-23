@@ -18,8 +18,9 @@ class ProxyServer extends EventEmitter {
       method: req.method,
       headers: req.headers
     };
+
     if (req.method === 'POST') {
-      let arr: any = [];
+      const arr: any = [];
       req.on('data', chunk => {
         arr.push(chunk);
       });
@@ -30,6 +31,7 @@ class ProxyServer extends EventEmitter {
     } else {
       this.delegate(res, config, options, emitter);
     }
+
     return emitter;
   }
 
@@ -51,17 +53,21 @@ class ProxyServer extends EventEmitter {
       proxyRes.on('end', () => {
         rawRes.end();
         process.nextTick(() => {
-          this.emit('end', { target: options.target });
-          emitter.emit('end', { target: options.target });
+          const obj = { target: options.target };
+          this.listenerCount('end') && this.emit('end', obj);
+          emitter.listenerCount('end') && emitter.emit('end', obj);
         });
       });
     });
+
     proxyReq.on('error', e => {
       process.nextTick(() => {
-        this.emit('error', Object.assign({ target: options.target }, e));
-        emitter.emit('error', Object.assign({ target: options.target }, e));
+        const obj = Object.assign({ target: options.target }, e);
+        this.listenerCount('error') && this.emit('error', obj);
+        emitter.listenerCount('error') && emitter.emit('error', obj);
       });
     });
+
     body && proxyReq.write(body);
     proxyReq.end();
   }
