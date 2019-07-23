@@ -35,7 +35,7 @@ const delegate = (rawRes: ServerResponse, options: any, body?: string) => {
   let proxyReq = http.request(options, proxyRes => {
     rawRes.statusCode = proxyRes.statusCode || 500;
     for (let header in proxyRes.headers) {
-      rawRes.setHeader(header, proxyRes.headers[header] as any);
+      rawRes.setHeader(header, proxyRes.headers[header]!);
     }
     proxyRes.on('data', chunk => {
       rawRes.write(chunk);
