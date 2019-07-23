@@ -50,13 +50,17 @@ class ProxyServer extends EventEmitter {
       });
       proxyRes.on('end', () => {
         rawRes.end();
-        this.emit('end', { target: options.target });
-        emitter.emit('end', { target: options.target });
+        process.nextTick(() => {
+          this.emit('end', { target: options.target });
+          emitter.emit('end', { target: options.target });
+        });
       });
     });
     proxyReq.on('error', e => {
-      this.emit('error', Object.assign({ target: options.target }, e));
-      emitter.emit('error', Object.assign({ target: options.target }, e));
+      process.nextTick(() => {
+        this.emit('error', Object.assign({ target: options.target }, e));
+        emitter.emit('error', Object.assign({ target: options.target }, e));
+      });
     });
     body && proxyReq.write(body);
     proxyReq.end();
