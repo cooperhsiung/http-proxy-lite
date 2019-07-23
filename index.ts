@@ -1,15 +1,18 @@
 import * as http from 'http';
 import { parse as parseUrl } from 'url';
 import { IncomingMessage, ServerResponse } from 'http';
+import { EventEmitter } from 'events';
 
 type ProxyOptions = {
   target: string;
 };
 
-class ProxyServer {
-  web(req: IncomingMessage, res: ServerResponse, opts: ProxyOptions) {
-    const { hostname, port } = parseUrl(opts.target);
-    const options = {
+class ProxyServer extends EventEmitter {
+  private options!: ProxyOptions;
+  web(req: IncomingMessage, res: ServerResponse, options: ProxyOptions) {
+    this.options = options;
+    const { hostname, port } = parseUrl(options.target);
+    const config = {
       hostname: hostname,
       port: port,
       path: req.url,
@@ -23,32 +26,33 @@ class ProxyServer {
       });
       req.on('end', () => {
         let body = Buffer.concat(arr).toString();
-        delegate(res, options, body);
+        this.delegate(res, config, body);
       });
     } else {
-      delegate(res, options);
+      this.delegate(res, config);
     }
   }
-}
 
-const delegate = (rawRes: ServerResponse, options: any, body?: string) => {
-  let proxyReq = http.request(options, proxyRes => {
-    rawRes.statusCode = proxyRes.statusCode || 500;
-    for (let header in proxyRes.headers) {
-      rawRes.setHeader(header, proxyRes.headers[header]!);
-    }
-    proxyRes.on('data', chunk => {
-      rawRes.write(chunk);
+  delegate(rawRes: ServerResponse, config: any, body?: string) {
+    let proxyReq = http.request(config, proxyRes => {
+      rawRes.statusCode = proxyRes.statusCode || 500;
+      for (let header in proxyRes.headers) {
+        rawRes.setHeader(header, proxyRes.headers[header]!);
+      }
+      proxyRes.on('data', chunk => {
+        rawRes.write(chunk);
+      });
+      proxyRes.on('end', () => {
+        rawRes.end();
+        this.emit('end', { target: this.options.target });
+      });
     });
-    proxyRes.on('end', () => {
-      rawRes.end();
+    proxyReq.on('error', e => {
+      this.emit('error', Object.assign({ target: this.options.target }, e));
     });
-  });
-  proxyReq.on('error', e => {
-    console.error(`problem with request: ${e.message}`);
-  });
-  body && proxyReq.write(body);
-  proxyReq.end();
-};
+    body && proxyReq.write(body);
+    proxyReq.end();
+  }
+}
 
 export const createProxyServer = (opts?: any) => new ProxyServer();
