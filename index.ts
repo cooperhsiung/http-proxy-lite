@@ -8,46 +8,38 @@ type ProxyOptions = {
 };
 
 class ProxyServer extends EventEmitter {
-  private req!: IncomingMessage;
-  private res!: ServerResponse;
-  private options!: ProxyOptions;
-
-  constructor(
-    req?: IncomingMessage,
-    res?: ServerResponse,
-    options?: ProxyOptions
-  ) {
-    super();
-    req && (this.req = req);
-    res && (this.res = res);
-    options && (this.options = options);
-  }
-
   web(req: IncomingMessage, res: ServerResponse, options: ProxyOptions) {
-    let self = new ProxyServer(req, res, options);
-    const { hostname, port } = parseUrl(self.options.target);
+    const emitter = new EventEmitter();
+    const { hostname, port } = parseUrl(options.target);
     const config = {
       hostname,
       port,
-      path: self.req.url,
-      method: self.req.method,
-      headers: self.req.headers
+      path: req.url,
+      method: req.method,
+      headers: req.headers
     };
-    if (self.req.method === 'POST') {
+    if (req.method === 'POST') {
       let arr: any = [];
-      self.req.on('data', chunk => {
+      req.on('data', chunk => {
         arr.push(chunk);
       });
-      self.req.on('end', () => {
+      req.on('end', () => {
         let body = Buffer.concat(arr).toString();
-        this.delegate.bind(self)(self.res, config, body);
+        this.delegate(res, config, options, emitter, body);
       });
     } else {
-      this.delegate.bind(self)(self.res, config);
+      this.delegate(res, config, options, emitter);
     }
+    return emitter;
   }
 
-  delegate(rawRes: ServerResponse, config: any, body?: string) {
+  delegate(
+    rawRes: ServerResponse,
+    config: any,
+    options: ProxyOptions,
+    emitter: EventEmitter,
+    body?: string
+  ) {
     let proxyReq = http.request(config, proxyRes => {
       rawRes.statusCode = proxyRes.statusCode || 500;
       for (let header in proxyRes.headers) {
@@ -58,11 +50,13 @@ class ProxyServer extends EventEmitter {
       });
       proxyRes.on('end', () => {
         rawRes.end();
-        this.emit('end', { target: this.options.target });
+        this.emit('end', { target: options.target });
+        emitter.emit('end', { target: options.target });
       });
     });
     proxyReq.on('error', e => {
-      this.emit('error', Object.assign({ target: this.options.target }, e));
+      this.emit('error', Object.assign({ target: options.target }, e));
+      emitter.emit('error', Object.assign({ target: options.target }, e));
     });
     body && proxyReq.write(body);
     proxyReq.end();
