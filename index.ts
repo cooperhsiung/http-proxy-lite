@@ -8,28 +8,42 @@ type ProxyOptions = {
 };
 
 class ProxyServer extends EventEmitter {
+  private req!: IncomingMessage;
+  private res!: ServerResponse;
   private options!: ProxyOptions;
+
+  constructor(
+    req?: IncomingMessage,
+    res?: ServerResponse,
+    options?: ProxyOptions
+  ) {
+    super();
+    req && (this.req = req);
+    res && (this.res = res);
+    options && (this.options = options);
+  }
+
   web(req: IncomingMessage, res: ServerResponse, options: ProxyOptions) {
-    this.options = options;
-    const { hostname, port } = parseUrl(options.target);
+    let self = new ProxyServer(req, res, options);
+    const { hostname, port } = parseUrl(self.options.target);
     const config = {
-      hostname: hostname,
-      port: port,
-      path: req.url,
-      method: req.method,
-      headers: req.headers
+      hostname,
+      port,
+      path: self.req.url,
+      method: self.req.method,
+      headers: self.req.headers
     };
-    if (req.method === 'POST') {
+    if (self.req.method === 'POST') {
       let arr: any = [];
-      req.on('data', chunk => {
+      self.req.on('data', chunk => {
         arr.push(chunk);
       });
-      req.on('end', () => {
+      self.req.on('end', () => {
         let body = Buffer.concat(arr).toString();
-        this.delegate(res, config, body);
+        this.delegate(self.res, config, body);
       });
     } else {
-      this.delegate(res, config);
+      this.delegate(self.res, config);
     }
   }
 
