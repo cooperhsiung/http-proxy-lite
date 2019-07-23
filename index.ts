@@ -40,10 +40,10 @@ class ProxyServer extends EventEmitter {
       });
       self.req.on('end', () => {
         let body = Buffer.concat(arr).toString();
-        this.delegate(self.res, config, body);
+        this.delegate.bind(self)(self.res, config, body);
       });
     } else {
-      this.delegate(self.res, config);
+      this.delegate.bind(self)(self.res, config);
     }
   }
 
