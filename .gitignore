@@ -10,6 +10,8 @@ lib-cov
 
 # Build
 dist
+*.js
+*.d.ts
 
 # Coverage directory used by tools like istanbul
 coverage
@@ -22,8 +24,3 @@ node_modules/
 
 # npm package lock
 package-lock.json
-
-/client
-/common
-/core
-/util

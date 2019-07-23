@@ -1,7 +1,3 @@
 .idea
 .vscode
-src/
-.editorconfig
-.gitignore
-.package-lock.json
-test/
+index.ts
