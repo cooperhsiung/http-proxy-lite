@@ -24,7 +24,7 @@ import * as httpProxy from 'http-proxy-lite';
 const proxy = httpProxy.createProxyServer();
 
 http
-  .createServer(function(req, res) {
+  .createServer((req, res) => {
     proxy.web(req, res, { target: 'http://127.0.0.1:3001' });
   })
   .listen(3000);
@@ -36,7 +36,7 @@ endpoint server
 import * as http from 'http';
 
 http
-  .createServer(function(req, res) {
+  .createServer((req, res) => {
     res.end('hello, response from 3001');
   })
   .listen(3001);
@@ -50,7 +50,7 @@ add listener for event, 'error' 'end'
 
 ```typescript
 http
-  .createServer(function(req, res) {
+  .createServer((req, res) => {
     proxy
       .web(req, res, { target: 'http://127.0.0.1:3001' })
       .on('error', err => {
@@ -70,7 +70,7 @@ http
 const proxy = httpProxy.createProxyServer();
 
 http
-  .createServer(function(req, res) {
+  .createServer((req, res) => {
     proxy.web(req, res, { target: 'http://127.0.0.1:3001' });
   })
   .listen(3000);

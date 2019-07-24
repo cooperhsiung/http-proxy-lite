@@ -42,7 +42,7 @@ class ProxyServer extends EventEmitter {
     emitter: EventEmitter,
     body?: string
   ) {
-    let proxyReq = http.request(config, proxyRes => {
+    const proxyReq = http.request(config, proxyRes => {
       rawRes.statusCode = proxyRes.statusCode || 500;
       for (let header in proxyRes.headers) {
         rawRes.setHeader(header, proxyRes.headers[header]!);
